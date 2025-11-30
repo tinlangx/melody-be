@@ -4,7 +4,7 @@ Simple Express + MongoDB backend providing register and login for Melody web.
 
 ## Setup
 
-1. Copy `.env.example` to `.env` and update values if needed (keep `CLIENT_URL=https://melody-fe.vercel.app` for CORS).
+1. Copy `.env.example` to `.env` and update values if needed. `CLIENT_URL` accepts a comma-separated list for CORS (e.g. `https://melody-fe.vercel.app,http://localhost:5173`).
 2. Install dependencies:
    ```bash
    npm install

@@ -11,9 +11,23 @@ const CLIENT_URL = process.env.CLIENT_URL || 'https://melody-fe.vercel.app';
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
+const parseOrigins = (raw) => {
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const allowedOrigins = parseOrigins(CLIENT_URL);
+
 app.use(
   cors({
-    origin: CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true); // Allow tools like curl/postman
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   })
 );
