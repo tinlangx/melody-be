@@ -9,9 +9,7 @@ const app = express();
 
 const CLIENT_URL = process.env.CLIENT_URL || 'https://melody-fe.vercel.app';
 const PORT = process.env.PORT || 4000;
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  'mongodb+srv://tinlangx:1234566@mindx-web91.whzoamu.mongodb.net/melody?retryWrites=true&w=majority';
+const MONGODB_URI = process.env.MONGODB_URI;
 
 app.use(
   cors({
@@ -26,6 +24,11 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+
+if (!MONGODB_URI) {
+  console.error('Missing MONGODB_URI. Please set it in environment variables.');
+  process.exit(1);
+}
 
 mongoose
   .connect(MONGODB_URI)
