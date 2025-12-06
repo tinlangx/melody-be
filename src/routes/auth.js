@@ -14,6 +14,11 @@ const buildUserResponse = (userDoc) => {
   return user;
 };
 
+const signToken = (user) =>
+  jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, {
+    expiresIn: TOKEN_EXPIRES_IN,
+  });
+
 router.post('/register', async (req, res) => {
   try {
     const { email, password, name } = req.body;
@@ -32,11 +37,10 @@ router.post('/register', async (req, res) => {
       email: email.toLowerCase(),
       password: hashedPassword,
       name,
+      role: 'LISTENER', // default role cho đăng ký mới
     });
 
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
-      expiresIn: TOKEN_EXPIRES_IN,
-    });
+    const token = signToken(user);
 
     return res.status(201).json({ user: buildUserResponse(user), token });
   } catch (err) {
@@ -62,9 +66,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Email hoặc mật khẩu không đúng.' });
     }
 
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
-      expiresIn: TOKEN_EXPIRES_IN,
-    });
+    const token = signToken(user);
 
     return res.json({ user: buildUserResponse(user), token });
   } catch (err) {
