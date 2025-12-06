@@ -9,6 +9,7 @@ const adminRoutes = require('./routes/admin');
 const uploadRoutes = require('./routes/uploads');
 const artistRoutes = require('./routes/artist');
 const artistExtraRoutes = require('./routes/artistExtra');
+const listenerRoutes = require('./routes/listener');
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use('/api', adminRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api', artistRoutes);
 app.use('/api', artistExtraRoutes);
+app.use('/api', listenerRoutes);
 
 if (!MONGODB_URI) {
   console.error('Missing MONGODB_URI. Please set it in environment variables.');

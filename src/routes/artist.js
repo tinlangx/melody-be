@@ -245,7 +245,7 @@ router.get('/public/albums', async (req, res) => {
     const albums = await Album.find({})
       .sort({ createdAt: -1 })
       .populate({ path: 'uploadedBy', select: 'name email' })
-      .populate({ path: 'songs', select: 'title format' });
+      .populate({ path: 'songs', select: 'title format url coverUrl thumbnail uploadedBy' });
     res.json({ albums });
   } catch (err) {
     console.error('Public albums error:', err);

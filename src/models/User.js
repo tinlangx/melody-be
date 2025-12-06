@@ -24,6 +24,12 @@ const userSchema = new mongoose.Schema(
       default: 'LISTENER',
       index: true,
     },
+    favorites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Song',
+      },
+    ],
   },
   { timestamps: true }
 );

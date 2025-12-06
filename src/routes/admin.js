@@ -1,6 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const Song = require('../models/Song');
+const Album = require('../models/Album');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
@@ -116,5 +118,84 @@ router.post(
     }
   }
 );
+
+// Lấy danh sách tất cả user (ẩn mật khẩu)
+router.get('/admin/users', requireAuth, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const users = await User.find().sort({ createdAt: -1 });
+    return res.json({ users: users.map(buildUserResponse) });
+  } catch (err) {
+    console.error('List users error:', err);
+    return res.status(500).json({ message: 'Không thể tải danh sách người dùng.' });
+  }
+});
+
+// Xóa user (Admin không được tự xóa chính mình)
+router.delete('/admin/users/:id', requireAuth, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    if (req.user._id.toString() === req.params.id) {
+      return res.status(400).json({ message: 'Không thể tự xóa chính mình.' });
+    }
+
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng.' });
+
+    return res.json({ message: 'Đã xóa người dùng.', user: buildUserResponse(user) });
+  } catch (err) {
+    console.error('Delete user error:', err);
+    return res.status(500).json({ message: 'Không thể xóa người dùng.' });
+  }
+});
+
+// Danh sách bài hát (Admin)
+router.get('/admin/songs', requireAuth, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const songs = await Song.find().sort({ createdAt: -1 }).populate('uploadedBy', 'name email');
+    return res.json({ songs });
+  } catch (err) {
+    console.error('List songs error:', err);
+    return res.status(500).json({ message: 'Không thể tải danh sách bài hát.' });
+  }
+});
+
+// Xóa bài hát
+router.delete('/admin/songs/:id', requireAuth, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const song = await Song.findByIdAndDelete(req.params.id);
+    if (!song) return res.status(404).json({ message: 'Không tìm thấy bài hát.' });
+    // remove song from any album
+    await Album.updateMany({ songs: song._id }, { $pull: { songs: song._id } });
+    return res.json({ message: 'Đã xóa bài hát.', songId: song._id });
+  } catch (err) {
+    console.error('Delete song error:', err);
+    return res.status(500).json({ message: 'Không thể xóa bài hát.' });
+  }
+});
+
+// Danh sách album (Admin)
+router.get('/admin/albums', requireAuth, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const albums = await Album.find()
+      .sort({ createdAt: -1 })
+      .populate('uploadedBy', 'name email')
+      .populate('songs', 'title');
+    return res.json({ albums });
+  } catch (err) {
+    console.error('List albums error:', err);
+    return res.status(500).json({ message: 'Không thể tải danh sách album.' });
+  }
+});
+
+// Xóa album
+router.delete('/admin/albums/:id', requireAuth, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const album = await Album.findByIdAndDelete(req.params.id);
+    if (!album) return res.status(404).json({ message: 'Không tìm thấy album.' });
+    return res.json({ message: 'Đã xóa album.', albumId: album._id });
+  } catch (err) {
+    console.error('Delete album error:', err);
+    return res.status(500).json({ message: 'Không thể xóa album.' });
+  }
+});
 
 module.exports = router;
